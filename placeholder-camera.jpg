@@ -1,0 +1,28 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#2d2d44"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#grad)" rx="12"/>
+  <!-- Camera body -->
+  <rect x="120" y="80" width="160" height="240" rx="12" fill="#3a3a5a" stroke="#5a5a7a" stroke-width="2"/>
+  <!-- Lens -->
+  <circle cx="200" cy="160" r="50" fill="#1a1a2e" stroke="#5a5a7a" stroke-width="3"/>
+  <circle cx="200" cy="160" r="35" fill="#2d2d44" stroke="#5a5a7a" stroke-width="2"/>
+  <circle cx="200" cy="160" r="20" fill="#3a3a5a" stroke="#5a5a7a" stroke-width="2"/>
+  <circle cx="200" cy="160" r="8" fill="#ffffff"/>
+  <!-- Shutter button -->
+  <circle cx="200" cy="320" r="20" fill="#5a5a7a" stroke="#7a7a9a" stroke-width="2"/>
+  <circle cx="200" cy="320" r="10" fill="#7a7a9a"/>
+  <!-- Flash -->
+  <rect x="170" y="80" width="60" height="20" rx="4" fill="#3a3a5a" stroke="#5a5a7a" stroke-width="2"/>
+  <!-- Viewfinder lines -->
+  <line x1="160" y1="90" x2="240" y2="90" stroke="#5a5a7a" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="160" y1="240" x2="240" y2="240" stroke="#5a5a7a" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="200" y1="140" x2="200" y2="190" stroke="#5a5a7a" stroke-width="1" stroke-dasharray="4,2"/>
+  <line x1="200" y1="270" x2="200" y2="310" stroke="#5a5a7a" stroke-width="1" stroke-dasharray="4,2"/>
+  <!-- Status LED -->
+  <circle cx="200" cy="370" r="6" fill="#4caf50" opacity="0.8"/>
+</svg>
