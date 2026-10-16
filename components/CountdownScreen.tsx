@@ -5,18 +5,46 @@ import { Camera, X } from 'lucide-react'
 
 interface CountdownScreenProps {
   onComplete: () => void
-  videoRef: React.RefObject<HTMLVideoElement>
 }
 
-export default function CountdownScreen({ onComplete, videoRef }: CountdownScreenProps) {
+export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [currentCount, setCurrentCount] = useState(3)
   const [phase, setPhase] = useState<'countdown' | 'capture' | 'flash'>('countdown')
 
+  // Camera init
   useEffect(() => {
-    // Simulate 3 photos: each cycle is 3-2-1 countdown then flash
-    const totalSteps = 3 * 3 // 3 photos, each with 3-2-1 countdown
-    let step = 0
+    let isActive = true
 
+    const initCamera = async () => {
+      try {
+        const media = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' },
+          audio: false,
+        })
+        if (isActive && videoRef.current) {
+          videoRef.current.srcObject = media
+        }
+      } catch (err) {
+        console.error('Camera init failed:', err)
+      }
+    }
+
+    initCamera()
+
+    return () => {
+      isActive = false
+      if (videoRef.current) {
+        const stream = videoRef.current.srcObject as MediaStream
+        stream?.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
+  // Countdown logic (1-2-3 per photo, 3 photos total)
+  useEffect(() => {
+    const totalSteps = 9 // 3 photos x 3 countdown
+    let step = 0
     const interval = setInterval(() => {
       step++
       const cycle = Math.floor((step - 1) / 3)
@@ -28,6 +56,7 @@ export default function CountdownScreen({ onComplete, videoRef }: CountdownScree
         setTimeout(() => setPhase('capture'), 500)
       }
 
+      // Show countdown number for each step
       setCurrentCount(3 - position)
       setPhase('countdown')
 
@@ -47,7 +76,7 @@ export default function CountdownScreen({ onComplete, videoRef }: CountdownScree
       className="kiosk-lock flex flex-col items-center justify-center bg-[#0a0a0f] relative min-h-screen"
     >
       {/* Countdown number - centered */}
-      <div className="relative z-10 text-center px-4">
+      <div className="relative z-[200] text-center px-4">
         <div className="text-8xl md:text-9xl font-bold text-white/90 countdown-pop">
           {currentCount}
         </div>
@@ -77,8 +106,8 @@ export default function CountdownScreen({ onComplete, videoRef }: CountdownScree
         <X className="w-5 h-5" />
       </button>
 
-      {/* Camera feed overlay */}
-      <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center pointer-events-none">
+      {/* Camera feed background */}
+      <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center pointer-events-none">
         <video
           ref={videoRef}
           className="max-w-full max-h-full"
@@ -86,6 +115,13 @@ export default function CountdownScreen({ onComplete, videoRef }: CountdownScree
           muted
           autoPlay
         />
+        {/* Rule of Thirds Grid */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-px bg-white/30" />
+          <div className="absolute top-0 bottom-0 left-px bg-white/30" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-white/30" />
+          <div className="absolute bottom-0 top-0 right-px bg-white/30" />
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import React from 'react'
 import { CheckCircle, Download, X } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 
@@ -16,14 +17,68 @@ interface ResultScreenProps {
   onFinish: () => void
 }
 
+// Export photos to JSON file
+function exportPhotos(photos: Photo[]) {
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    photos,
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `photobooth-export-${new Date().toISOString().split('T')[0]}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// Import photos from JSON file
+function importPhotos(file: File) {
+  return new Promise<Photo[]>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string)
+        if (data.photos && Array.isArray(data.photos)) {
+          resolve(data.photos)
+        } else {
+          reject(new Error('Invalid file format'))
+        }
+      } catch (err) {
+        reject(err)
+      }
+    }
+    reader.onerror = () => reject(reader.error)
+    reader.readAsText(file)
+  })
+}
+
 export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
   const [showSuccess, setShowSuccess] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const handleFinish = () => {
     setShowSuccess(true)
     setTimeout(() => {
       onFinish()
     }, 1000)
+  }
+
+  const handleExport = () => {
+    exportPhotos(photos)
+  }
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      importPhotos(file).then((imported) => {
+        // Reset state and import photos
+        window.location.reload()
+      }).catch((err) => {
+        console.error('Import failed:', err)
+      })
+    }
   }
 
   return (
@@ -126,7 +181,7 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
           </div>
 
           {/* Bottom action buttons */}
-          <div className="mt-6 flex gap-4">
+          <div className="mt-6 flex flex-wrap gap-3 justify-center">
             <button
               onClick={handleFinish}
               className={`px-8 py-3 rounded-xl font-semibold text-white transition-all duration-200 ${
@@ -139,6 +194,34 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
                 <CheckCircle className="w-5 h-5" />
                 {showSuccess ? 'Selesai' : 'Selesai & Reset'}
               </span>
+            </button>
+            
+            {/* Export/Import buttons */}
+            <button
+              onClick={handleExport}
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+            >
+              📥 Export
+            </button>
+            
+            <label className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer">
+              📥 Import
+              <input
+                type="file"
+                accept=".json"
+                style={{ display: 'none' }}
+                onChange={handleImport}
+              />
+            </label>
+
+            {/* Cloudinary Upload */}
+            <button
+              onClick={() => {
+                alert('Cloudinary upload: need to configure cloudName & uploadPreset')
+              }}
+              className="px-4 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+            >
+              ☁️ Upload Cloudinary
             </button>
           </div>
         </div>
