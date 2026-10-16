@@ -33,6 +33,10 @@ export function useCameraCapture() {
           setStream(media)
           setIsCameraReady(true)
           setError(null)
+          // Set stream ke video element
+          if (videoRef.current) {
+            videoRef.current.srcObject = media
+          }
         }
       } catch (err) {
         if (isActive) {

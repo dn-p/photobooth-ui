@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Camera, X } from 'lucide-react'
 
 interface CountdownScreenProps {
   onComplete: () => void
+  videoRef: React.RefObject<HTMLVideoElement>
 }
 
-export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
+export default function CountdownScreen({ onComplete, videoRef }: CountdownScreenProps) {
   const [currentCount, setCurrentCount] = useState(3)
   const [phase, setPhase] = useState<'countdown' | 'capture' | 'flash'>('countdown')
 
@@ -40,10 +41,6 @@ export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
 
     return () => clearInterval(interval)
   }, [onComplete])
-
-  const flashStyle = {
-    animation: 'flash 0.5s ease-out',
-  }
 
   return (
     <div
@@ -79,6 +76,17 @@ export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
       >
         <X className="w-5 h-5" />
       </button>
+
+      {/* Camera feed overlay */}
+      <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center pointer-events-none">
+        <video
+          ref={videoRef}
+          className="max-w-full max-h-full"
+          playsInline
+          muted
+          autoPlay
+        />
+      </div>
     </div>
   )
 }

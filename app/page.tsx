@@ -19,26 +19,18 @@ export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<ScreenState>('IDLE')
   const [photos, setPhotos] = useState<Photo[]>([])
   const [flashActive, setFlashActive] = useState(false)
-  const [isCameraReady, setIsCameraReady] = useState(false)
-  const [cameraError, setCameraError] = useState<string | null>(null)
 
-  const { videoRef, capture, stop } = useCameraCapture()
+  const { videoRef, capture, stop, isCameraReady } = useCameraCapture()
 
   const transitionToScreen = useCallback((screen: ScreenState) => {
     setCurrentScreen(screen)
     setPhotos([])
     setFlashActive(false)
-    setIsCameraReady(false)
-    setCameraError(null)
   }, [])
 
   const handleStart = useCallback(() => {
     transitionToScreen('COUNTDOWN')
-    setTimeout(() => {
-      // Camera is ready, start countdown
-      setIsCameraReady(true)
-      capturePhotos()
-    }, 500)
+    capturePhotos()
   }, [transitionToScreen])
 
   const capturePhotos = useCallback(() => {
@@ -96,6 +88,7 @@ export default function Home() {
       {currentScreen === 'COUNTDOWN' && (
         <CountdownScreen
           onComplete={() => transitionToScreen('RESULT')}
+          videoRef={videoRef}
         />
       )}
 
