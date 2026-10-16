@@ -15,6 +15,10 @@ interface Photo {
   label: string
 }
 
+interface PhotoCapturedEvent {
+  photo: Photo
+}
+
 // API calls to GPhoto backend
 async function fetchGPhotoCapture(config?: {
   shutterSpeed?: number
@@ -201,7 +205,7 @@ export default function Home() {
           id: photo.id,
           url: photo.url,
           color: colors[cycle] || '#1e1e2f',
-          label: labels[cycle] || 'Foto',
+          label: `Foto ${cycle + 1}`,
         }
       }
 
@@ -223,6 +227,10 @@ export default function Home() {
     handleCaptureSequence()
   }, [handleCaptureSequence])
 
+  const handlePhotoCaptured = useCallback((photo: Photo) => {
+    // Photo captured, already handled in handleCaptureSequence
+  }, [])
+
   useEffect(() => {
     if (currentScreen === 'RESULT') {
       const timer = setTimeout(() => {
@@ -239,6 +247,7 @@ export default function Home() {
       {currentScreen === 'COUNTDOWN' && (
         <CountdownScreen
           onComplete={() => transitionToScreen('RESULT')}
+          onPhotoCaptured={handlePhotoCaptured}
         />
       )}
 

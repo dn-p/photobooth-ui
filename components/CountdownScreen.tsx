@@ -1,13 +1,21 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Camera, X } from 'lucide-react'
+
+interface Photo {
+  id: number
+  url: string
+  color: string
+  label: string
+}
 
 interface CountdownScreenProps {
   onComplete: () => void
+  onPhotoCaptured: (photo: Photo) => void
 }
 
-export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
+export default function CountdownScreen({ onComplete, onPhotoCaptured }: CountdownScreenProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentCount, setCurrentCount] = useState(3)
   const [phase, setPhase] = useState<'countdown' | 'capture' | 'flash'>('countdown')
@@ -41,34 +49,44 @@ export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
     }
   }, [])
 
-  // Countdown logic (1-2-3 per photo, 3 photos total)
+  // Countdown logic (3-2-1 per photo, 3 photos total)
   useEffect(() => {
-    const totalSteps = 9 // 3 photos x 3 countdown
+    const totalSteps = 3 * 3 // 3 photos x 3 countdown
     let step = 0
-    const interval = setInterval(() => {
-      step++
-      const cycle = Math.floor((step - 1) / 3)
-      const position = (step - 1) % 3
+    let interval: ReturnType<typeof setInterval> | null = null
 
-      if (position === 0 && step > 1) {
-        // Flash between photos
-        setPhase('flash')
-        setTimeout(() => setPhase('capture'), 500)
-      }
-
-      // Show countdown number for each step
-      setCurrentCount(3 - position)
-      setPhase('countdown')
-
-      if (step === totalSteps) {
+    const startCountdown = () => {
+      if (interval) {
         clearInterval(interval)
-        setTimeout(() => {
-          onComplete()
-        }, 500)
       }
-    }, 1200)
+      step = 0
+      interval = setInterval(() => {
+        step++
+        const cycle = Math.floor((step - 1) / 3)
+        const position = step % 3
 
-    return () => clearInterval(interval)
+        // Show countdown: 3, 2, 1
+        const count = position === 0 ? 3 : (position === 1 ? 2 : 1)
+        setCurrentCount(count)
+        setPhase('countdown')
+
+        if (step === totalSteps) {
+          clearInterval(interval!)
+          setCurrentCount(0)
+          setTimeout(() => {
+            onComplete()
+          }, 300)
+        }
+      }, 1000)
+    }
+
+    startCountdown()
+
+    return () => {
+      if (interval) {
+        clearInterval(interval)
+      }
+    }
   }, [onComplete])
 
   return (
@@ -117,10 +135,12 @@ export default function CountdownScreen({ onComplete }: CountdownScreenProps) {
         />
         {/* Rule of Thirds Grid */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 right-0 h-px bg-white/30" />
-          <div className="absolute top-0 bottom-0 left-px bg-white/30" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-white/30" />
-          <div className="absolute bottom-0 top-0 right-px bg-white/30" />
+          {/* Horizontal lines */}
+          <div className="absolute top-[33.333%] left-0 right-0 h-px bg-white/30" />
+          <div className="absolute bottom-[33.333%] left-0 right-0 h-px bg-white/30" />
+          {/* Vertical lines */}
+          <div className="absolute top-0 left-[33.333%] bottom-0 w-px bg-white/30" />
+          <div className="absolute top-0 right-[33.333%] bottom-0 w-px bg-white/30" />
         </div>
       </div>
     </div>
