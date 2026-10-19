@@ -97,6 +97,15 @@ export default function CountdownScreen({
           muted
           autoPlay
         />
+        {/* Rule of Thirds Grid */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Horizontal lines */}
+          <div className="absolute top-[33.333%] left-0 right-0 h-px bg-white/30" />
+          <div className="absolute bottom-[33.333%] left-0 right-0 h-px bg-white/30" />
+          {/* Vertical lines */}
+          <div className="absolute top-0 left-[33.333%] bottom-0 w-px bg-white/30" />
+          <div className="absolute top-0 right-[33.333%] bottom-0 w-px bg-white/30" />
+        </div>
       </div>
     </div>
   )

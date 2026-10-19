@@ -25,6 +25,8 @@ export function useCameraCapture() {
     const activeStream = streamRef.current
     if (!video || !activeStream) return
 
+    if (video.srcObject === activeStream) return
+
     video.srcObject = activeStream
     video.muted = true
     video.playsInline = true
@@ -155,6 +157,11 @@ export function useCameraCapture() {
     return photo
   }, [])
 
+  const resetCaptureCount = useCallback(() => {
+    capturedCountRef.current = 0
+    setCapturedCount(0)
+  }, [])
+
   const stop = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop())
@@ -176,6 +183,7 @@ export function useCameraCapture() {
     isCameraReady,
     error,
     capture,
+    resetCaptureCount,
     stop,
   }
 }

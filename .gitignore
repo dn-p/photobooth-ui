@@ -1,2 +1,6 @@
 .vercel
 node_modules
+.next
+.next/cache
+out/_next
+.env*.local
