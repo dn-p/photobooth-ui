@@ -30,11 +30,9 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
     <div
       className="kiosk-lock flex items-center justify-center bg-[#0a0a0f] relative overflow-hidden"
     >
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#0a0a0f]" />
 
       <div className="relative z-10 flex flex-col items-center justify-center px-4 min-h-screen">
-        {/* Success overlay */}
         {showSuccess && (
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center">
             <div className="text-center text-white">
@@ -45,7 +43,6 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
         )}
 
         <div className="w-full max-w-5xl">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white">
               <CheckCircle className="inline w-6 h-6 text-green-400 mr-2" />
@@ -59,9 +56,7 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
             </button>
           </div>
 
-          {/* Main content */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left: Photo Grid (2x2) */}
             <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-4">
               <h3 className="text-white/70 text-sm uppercase tracking-widest mb-4">
                 Hasil Foto
@@ -72,14 +67,11 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
                     key={photo.id}
                     className="relative group rounded-xl overflow-hidden bg-white/5 border border-white/10"
                   >
-                    <div
-                      className="w-full h-32 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#2d2d44] flex items-center justify-center"
-                      style={{ backgroundColor: photo.color }}
-                    >
-                      <span className="text-white/60 text-sm font-medium">
-                        {photo.label}
-                      </span>
-                    </div>
+                    <img
+                      src={photo.url}
+                      alt={photo.label}
+                      className="w-full h-32 object-cover rounded-xl"
+                    />
                     <div className="p-2">
                       <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                         <span className="text-white/40 text-xs font-mono">
@@ -87,21 +79,22 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
                         </span>
                       </div>
                     </div>
-                    {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
                       <Download className="w-6 h-6 text-white" />
                     </div>
                   </div>
                 ))}
-                {photos.length < 3 && (
-                  <div className="rounded-xl bg-white/5 border border-white/10 flex items-center justify-center h-32">
+                {Array.from({ length: Math.max(0, 3 - photos.length) }).map((_, index) => (
+                  <div
+                    key={`empty-${index}`}
+                    className="rounded-xl bg-white/5 border border-white/10 flex items-center justify-center h-32"
+                  >
                     <span className="text-white/30 text-sm">Kosong</span>
                   </div>
-                )}
+                ))}
               </div>
             </div>
 
-            {/* Right: QR Code */}
             <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 flex flex-col items-center justify-center">
               <h3 className="text-white/70 text-sm uppercase tracking-widest mb-4">
                 Download
@@ -125,7 +118,6 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
             </div>
           </div>
 
-          {/* Bottom action buttons */}
           <div className="mt-6 flex gap-4">
             <button
               onClick={handleFinish}
