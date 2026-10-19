@@ -97,11 +97,17 @@ export function useCameraCapture() {
         setError(null)
       } catch (err) {
         if (isActive) {
-          setError(
-            err instanceof Error && err.message.includes('No built-in or physical camera')
-              ? 'Kamera bawaan tidak ditemukan. Pastikan kamera terhubung dan diizinkan.'
-              : 'Gagal mengakses kamera bawaan. Pastikan izin didapatkan.'
-          )
+          const errorName = err instanceof Error ? err.name : ''
+          const message = err instanceof Error ? err.message : ''
+          if (message.includes('No built-in or physical camera')) {
+            setError('Kamera bawaan tidak ditemukan. Pastikan kamera terhubung dan diizinkan.')
+          } else if (errorName === 'NotReadableError' || errorName === 'TrackStartError') {
+            setError('Kamera sedang dipakai aplikasi lain. Tutup aplikasi kamera lain, lalu muat ulang halaman.')
+          } else if (errorName === 'NotAllowedError' || errorName === 'SecurityError') {
+            setError('Izin kamera ditolak. Izinkan akses kamera di browser, lalu muat ulang halaman.')
+          } else {
+            setError('Gagal mengakses kamera bawaan. Pastikan izin didapatkan.')
+          }
           console.error(err)
         }
       } finally {

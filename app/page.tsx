@@ -195,6 +195,7 @@ export default function Home() {
       {currentScreen === 'RESULT' && (
         <ResultScreen
           photos={photos}
+          cameraError={cameraError}
           onFinish={() => transitionToScreen('IDLE')}
         />
       )}

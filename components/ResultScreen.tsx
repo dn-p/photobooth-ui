@@ -27,9 +27,10 @@ interface Photo {
 interface ResultScreenProps {
   photos: Photo[]
   onFinish: () => void
+  cameraError?: string | null
 }
 
-export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
+export default function ResultScreen({ photos, onFinish, cameraError }: ResultScreenProps) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [activeTab, setActiveTab] = useState<'strip' | 'individual'>('strip')
   const [stripTheme, setStripTheme] = useState<'white' | 'dark'>('white')
@@ -42,7 +43,6 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
   // Generate Photo Strip
   const createStrip = useCallback(
     async (theme: 'white' | 'dark') => {
-      if (photos.length === 0) return null
       setIsGenerating(true)
       try {
         const photoUrls = photos.map((p) => p.url)
@@ -89,7 +89,7 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
 
     const run = async () => {
       const generated = await createStrip(stripTheme)
-      if (!isCancelled && generated) {
+      if (!isCancelled && generated && photos.length > 0) {
         await handleUpload(generated)
       }
     }
@@ -99,14 +99,14 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
     return () => {
       isCancelled = true
     }
-  }, [createStrip, handleUpload, stripTheme])
+  }, [createStrip, handleUpload, photos.length, stripTheme])
 
   const handleThemeChange = async (newTheme: 'white' | 'dark') => {
     if (newTheme === stripTheme) return
     setStripTheme(newTheme)
     setUploadedCloudUrl(null)
     const newStrip = await createStrip(newTheme)
-    if (newStrip) {
+    if (newStrip && photos.length > 0) {
       await handleUpload(newStrip)
     }
   }
@@ -230,6 +230,22 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
 
             {/* Preview Box */}
             <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 flex flex-col items-center justify-center min-h-[440px]">
+              {photos.length === 0 && (
+                <div
+                  role="status"
+                  className="mb-4 w-full rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+                >
+                  <p className="font-semibold">Foto belum berhasil diambil.</p>
+                  <p className="mt-1 text-amber-100/80">
+                    {cameraError ||
+                      'Periksa izin kamera dan pastikan kamera tidak sedang dipakai aplikasi lain, lalu muat ulang halaman.'}
+                  </p>
+                  <p className="mt-1 text-xs text-amber-100/60">
+                    Strip di bawah hanya menampilkan template tanpa foto.
+                  </p>
+                </div>
+              )}
+
               {activeTab === 'strip' ? (
                 <div className="flex flex-col items-center w-full">
                   {isGenerating ? (
@@ -256,9 +272,7 @@ export default function ResultScreen({ photos, onFinish }: ResultScreenProps) {
                         Unduh Strip ke Komputer
                       </button>
                     </div>
-                  ) : (
-                    <p className="text-white/40 text-sm">Tidak ada foto</p>
-                  )}
+                  ) : null}
                 </div>
               ) : (
                 /* Individual Photos Grid */
