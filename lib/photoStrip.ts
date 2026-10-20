@@ -10,7 +10,9 @@ export interface PhotoStripConfig {
 const loadImage = (src: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
+    if (/^https?:\/\//i.test(src)) {
+      img.crossOrigin = 'anonymous'
+    }
     img.onload = () => resolve(img)
     img.onerror = (err) => reject(err)
     img.src = src
@@ -147,6 +149,11 @@ export async function generatePhotoStrip(
         drawImageCover(ctx, img, marginX, photoY, photoWidth, photoHeight, borderRadius)
       } catch (err) {
         console.error(`Gagal memuat foto ke-${i + 1}`, err)
+        ctx.fillStyle = subtextColor
+        ctx.font = '500 28px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(`Foto ${i + 1} gagal dimuat`, stripWidth / 2, photoY + photoHeight / 2)
       }
     } else {
       // Empty slot text
