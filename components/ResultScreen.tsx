@@ -35,6 +35,7 @@ export default function ResultScreen({ photos, onFinish, cameraError }: ResultSc
   const [activeTab, setActiveTab] = useState<'strip' | 'individual'>('strip')
   const [stripTheme, setStripTheme] = useState<'white' | 'dark'>('white')
   const [stripUrl, setStripUrl] = useState<string | null>(null)
+  const [stripError, setStripError] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedCloudUrl, setUploadedCloudUrl] = useState<string | null>(null)
@@ -51,10 +52,14 @@ export default function ResultScreen({ photos, onFinish, cameraError }: ResultSc
           title: 'PHOTOBOOTH',
           subtitle: 'Sweet Memories',
         })
+        setStripError(null)
         setStripUrl(strip)
         return strip
       } catch (err) {
         console.error('Gagal membuat photo strip:', err)
+        setStripError(
+          err instanceof Error ? err.message : 'Terjadi kesalahan saat membuat photo strip.'
+        )
         return null
       } finally {
         setIsGenerating(false)
@@ -82,6 +87,13 @@ export default function ResultScreen({ photos, onFinish, cameraError }: ResultSc
     }
     setIsUploading(false)
   }, [])
+
+  const handleRetryGeneration = useCallback(async () => {
+    const generated = await createStrip(stripTheme)
+    if (generated && photos.length > 0) {
+      await handleUpload(generated)
+    }
+  }, [createStrip, handleUpload, photos.length, stripTheme])
 
   // Initial generation and upload
   useEffect(() => {
@@ -129,7 +141,7 @@ export default function ResultScreen({ photos, onFinish, cameraError }: ResultSc
   }
 
   return (
-    <div className="kiosk-lock flex items-center justify-center bg-[#0a0a0f] relative overflow-y-auto py-8">
+    <div className="kiosk-lock result-screen flex items-center justify-center bg-[#0a0a0f] relative overflow-y-auto py-8">
       {/* Background glow effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#141428] to-[#0a0a0f] pointer-events-none" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -248,31 +260,91 @@ export default function ResultScreen({ photos, onFinish, cameraError }: ResultSc
 
               {activeTab === 'strip' ? (
                 <div className="flex flex-col items-center w-full">
-                  {isGenerating ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-white/60 gap-3">
-                      <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
-                      <p className="text-sm">Menyiapkan Photo Strip...</p>
-                    </div>
-                  ) : stripUrl ? (
-                    <div className="flex flex-col items-center gap-4">
-                      {/* Scaled Photo Strip frame preview */}
-                      <div className="relative group max-h-[500px] rounded-xl overflow-hidden shadow-2xl border border-white/15 bg-black/40">
-                        <img
-                          src={stripUrl}
-                          alt="Photo Strip"
-                          className="h-[480px] w-auto object-contain transition-transform duration-300 group-hover:scale-[1.01]"
-                        />
+                  <div className="flex flex-col items-center gap-4">
+                    <div
+                      className={`flex h-[480px] w-[160px] flex-col overflow-hidden border-4 p-[10px] shadow-2xl ${
+                        stripTheme === 'dark'
+                          ? 'border-[#22222c] bg-[#111116] text-white'
+                          : 'border-[#eaeaea] bg-white text-[#111116]'
+                      }`}
+                    >
+                      <div className="flex flex-col gap-[7px]">
+                        {[0, 1, 2].map((index) => (
+                          <div
+                            key={index}
+                            className={`aspect-[4/3] w-full overflow-hidden rounded-[4px] ${
+                              stripTheme === 'dark' ? 'bg-[#1a1a24]' : 'bg-[#f4f4f7]'
+                            }`}
+                          >
+                            {photos[index] ? (
+                              <img
+                                src={photos[index].url}
+                                alt={`Foto ${index + 1} di photo strip`}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center text-xs text-gray-500">
+                                Foto {index + 1}
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-
-                      <button
-                        onClick={handleDownloadStrip}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/15 transition-all shadow-md active:scale-95"
-                      >
-                        <Download className="w-4 h-4 text-purple-400" />
-                        Unduh Strip ke Komputer
-                      </button>
+                      <div className="mt-5 text-center">
+                        <p className="text-[9px] font-extrabold tracking-[0.2em]">PHOTOBOOTH</p>
+                        <p
+                          className={`mt-1 text-[6px] font-semibold tracking-[0.15em] ${
+                            stripTheme === 'dark' ? 'text-[#888899]' : 'text-[#666677]'
+                          }`}
+                        >
+                          SWEET MEMORIES
+                        </p>
+                        <p
+                          className={`mt-1 text-[6px] font-medium ${
+                            stripTheme === 'dark' ? 'text-[#888899]' : 'text-[#666677]'
+                          }`}
+                        >
+                          {new Date().toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
                     </div>
-                  ) : null}
+
+                    {stripError && (
+                      <div
+                        role="alert"
+                        className="flex flex-col items-center gap-3 text-center text-white/70"
+                      >
+                        <AlertCircle className="h-6 w-6 text-amber-400" />
+                        <p className="text-sm">
+                          File strip tidak dapat dibuat: {stripError}
+                        </p>
+                        <button
+                          onClick={() => void handleRetryGeneration()}
+                          className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Coba Lagi
+                        </button>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleDownloadStrip}
+                      disabled={!stripUrl || isGenerating}
+                      className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-white/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
+                      ) : (
+                        <Download className="h-4 w-4 text-purple-400" />
+                      )}
+                      {isGenerating ? 'Menyiapkan file strip...' : 'Unduh Strip ke Komputer'}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* Individual Photos Grid */
